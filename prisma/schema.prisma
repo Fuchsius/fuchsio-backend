@@ -26,14 +26,17 @@ enum UserStatus {
 }
 
 model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
-  username  String     @unique
-  password  String
-  firstName String
-  lastName  String
-  role      UserRole   @default(EMPLOYEE)
-  status    UserStatus @default(ACTIVE)
+  id             String     @id @default(cuid())
+  email          String     @unique
+  username       String     @unique
+  password       String
+  firstName      String
+  lastName       String
+  avatar         String?
+  position       String?
+  accessToOthers Boolean    @default(true)
+  role           UserRole   @default(EMPLOYEE)
+  status         UserStatus @default(ACTIVE)
 
   // Metadata
   createdAt DateTime  @default(now())

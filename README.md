@@ -47,6 +47,10 @@ The server will start at `http://localhost:3000`
 - `npm run dev` - Start development server with nodemon
 - `npm run lint` - Run ESLint
 - `npm run lint:fix` - Fix ESLint issues
+- `npm run db:push` - Push schema changes to database
+- `npm run db:generate` - Generate Prisma client
+- `npm run db:seed` - Seed database with initial data
+- `npm run db:studio` - Open Prisma Studio
 
 ## API Endpoints
 
@@ -75,7 +79,8 @@ The server will start at `http://localhost:3000`
 
 ```
 src/
-├── middleware/         # Custom middleware
+├── controllers/       # Business logic
+├── middleware/        # Custom middleware
 ├── routes/            # API routes
 ├── utils/             # Utility functions
 └── server.js          # Main server file
@@ -103,7 +108,7 @@ Copy `.env.example` to `.env` and configure:
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests
+4. Run ESLint to ensure code quality
 5. Submit a pull request
 
 ## License

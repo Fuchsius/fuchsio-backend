@@ -37,9 +37,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(compression());
 
 // Logging middleware
-if (process.env.NODE_ENV !== "test") {
-  app.use(morgan("combined"));
-}
+app.use(morgan("combined"));
 
 // Routes
 app.get("/", (req, res) => {
