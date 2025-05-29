@@ -7,7 +7,8 @@ const prisma = new PrismaClient();
 
 // Update own profile
 const updateProfile = async (req, res) => {
-  const { firstName, lastName, email, username } = req.validatedBody;
+  const { firstName, lastName, email, username, avatar, position } =
+    req.validatedBody;
 
   // Check if email/username is already taken by another user
   if (email || username) {
@@ -42,6 +43,8 @@ const updateProfile = async (req, res) => {
       ...(lastName && { lastName }),
       ...(email && { email }),
       ...(username && { username }),
+      ...(avatar !== undefined && { avatar }),
+      ...(position !== undefined && { position }),
     },
     select: {
       id: true,
@@ -51,6 +54,9 @@ const updateProfile = async (req, res) => {
       lastName: true,
       role: true,
       status: true,
+      avatar: true,
+      position: true,
+      accessToOthers: true,
       updatedAt: true,
     },
   });
@@ -60,8 +66,17 @@ const updateProfile = async (req, res) => {
 
 // Admin: Create new user
 const createUser = async (req, res) => {
-  const { email, username, password, firstName, lastName, role } =
-    req.validatedBody;
+  const {
+    email,
+    username,
+    password,
+    firstName,
+    lastName,
+    role,
+    avatar,
+    position,
+    accessToOthers,
+  } = req.validatedBody;
 
   // Check if user already exists
   const existingUser = await prisma.user.findFirst({
@@ -92,6 +107,9 @@ const createUser = async (req, res) => {
       lastName,
       role: role || "EMPLOYEE",
       createdBy: req.user.id,
+      ...(avatar !== undefined && { avatar }),
+      ...(position !== undefined && { position }),
+      ...(accessToOthers !== undefined && { accessToOthers }),
     },
     select: {
       id: true,
@@ -101,6 +119,9 @@ const createUser = async (req, res) => {
       lastName: true,
       role: true,
       status: true,
+      avatar: true,
+      position: true,
+      accessToOthers: true,
       createdAt: true,
     },
   });
@@ -111,8 +132,17 @@ const createUser = async (req, res) => {
 // Admin: Update any user / Team Lead: Update employees only
 const updateUser = async (req, res) => {
   const { id } = req.validatedParams;
-  const { firstName, lastName, email, username, role, status } =
-    req.validatedBody;
+  const {
+    firstName,
+    lastName,
+    email,
+    username,
+    role,
+    status,
+    avatar,
+    position,
+    accessToOthers,
+  } = req.validatedBody;
 
   // Get target user
   const targetUser = await prisma.user.findUnique({
@@ -178,6 +208,9 @@ const updateUser = async (req, res) => {
       ...(username && { username }),
       ...(role && { role }),
       ...(status && { status }),
+      ...(avatar !== undefined && { avatar }),
+      ...(position !== undefined && { position }),
+      ...(accessToOthers !== undefined && { accessToOthers }),
     },
     select: {
       id: true,
@@ -187,6 +220,9 @@ const updateUser = async (req, res) => {
       lastName: true,
       role: true,
       status: true,
+      avatar: true,
+      position: true,
+      accessToOthers: true,
       updatedAt: true,
     },
   });
@@ -228,7 +264,6 @@ const getUsersByRole = async (req, res) => {
   if (!["ADMIN", "TEAM_LEAD", "EMPLOYEE"].includes(role)) {
     return sendError(res, "Invalid role", 400);
   }
-
   // Get users by role
   const users = await prisma.user.findMany({
     where: { role },
@@ -240,6 +275,9 @@ const getUsersByRole = async (req, res) => {
       lastName: true,
       role: true,
       status: true,
+      avatar: true,
+      position: true,
+      accessToOthers: true,
       createdAt: true,
       lastLogin: true,
     },
@@ -268,7 +306,6 @@ const getUserStats = async (req, res) => {
 
   // Get total users count
   const totalUsers = await prisma.user.count();
-
   // Get recently created users
   const recentUsers = await prisma.user.findMany({
     take: 5,
@@ -281,6 +318,9 @@ const getUserStats = async (req, res) => {
       lastName: true,
       role: true,
       status: true,
+      avatar: true,
+      position: true,
+      accessToOthers: true,
       createdAt: true,
     },
   });
@@ -298,6 +338,9 @@ const getUserStats = async (req, res) => {
       lastName: true,
       role: true,
       status: true,
+      avatar: true,
+      position: true,
+      accessToOthers: true,
       lastLogin: true,
     },
   });

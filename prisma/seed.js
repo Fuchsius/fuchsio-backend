@@ -25,7 +25,6 @@ async function main() {
     console.log("👤 Creating admin user...");
     // Create admin user
     const hashedPassword = await bcrypt.hash("Admin@123", 12);
-
     const admin = await prisma.user.create({
       data: {
         email: "admin@fuchsio.com",
@@ -35,6 +34,10 @@ async function main() {
         lastName: "Administrator",
         role: "ADMIN",
         status: "ACTIVE",
+        position: "System Administrator",
+        avatar:
+          "https://ui-avatars.com/api/?name=System+Administrator&background=0D8ABC&color=fff",
+        accessToOthers: true,
       },
     });
 
@@ -48,7 +51,6 @@ async function main() {
     console.log("👤 Creating team lead user...");
     // Create a team lead user
     const teamLeadPassword = await bcrypt.hash("TeamLead@123", 12);
-
     const teamLead = await prisma.user.create({
       data: {
         email: "teamlead@fuchsio.com",
@@ -58,6 +60,10 @@ async function main() {
         lastName: "Leader",
         role: "TEAM_LEAD",
         status: "ACTIVE",
+        position: "Team Leader",
+        avatar:
+          "https://ui-avatars.com/api/?name=Team+Leader&background=4A8C2A&color=fff",
+        accessToOthers: true,
         createdBy: admin.id,
       },
     });
@@ -72,7 +78,6 @@ async function main() {
     console.log("👤 Creating employee user...");
     // Create an employee user
     const employeePassword = await bcrypt.hash("Employee@123", 12);
-
     const employee = await prisma.user.create({
       data: {
         email: "employee@fuchsio.com",
@@ -82,6 +87,10 @@ async function main() {
         lastName: "Employee",
         role: "EMPLOYEE",
         status: "ACTIVE",
+        position: "Software Developer",
+        avatar:
+          "https://ui-avatars.com/api/?name=John+Employee&background=A83C2A&color=fff",
+        accessToOthers: false,
         createdBy: teamLead.id,
       },
     });

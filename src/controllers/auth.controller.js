@@ -15,8 +15,17 @@ const prisma = new PrismaClient();
 
 // Register new user
 const registerUser = async (req, res) => {
-  const { email, username, password, firstName, lastName, role } =
-    req.validatedBody;
+  const {
+    email,
+    username,
+    password,
+    firstName,
+    lastName,
+    role,
+    avatar,
+    position,
+    accessToOthers,
+  } = req.validatedBody;
 
   // Check if user already exists
   const existingUser = await prisma.user.findFirst({
@@ -47,7 +56,6 @@ const registerUser = async (req, res) => {
 
   // Hash password
   const hashedPassword = await hashPassword(password);
-
   // Create user
   const user = await prisma.user.create({
     data: {
@@ -58,6 +66,9 @@ const registerUser = async (req, res) => {
       lastName,
       role: role || "EMPLOYEE",
       createdBy: req.user?.id || null,
+      ...(avatar !== undefined && { avatar }),
+      ...(position !== undefined && { position }),
+      ...(accessToOthers !== undefined && { accessToOthers }),
     },
     select: {
       id: true,
@@ -67,6 +78,9 @@ const registerUser = async (req, res) => {
       lastName: true,
       role: true,
       status: true,
+      avatar: true,
+      position: true,
+      accessToOthers: true,
       createdAt: true,
     },
   });
@@ -111,14 +125,22 @@ const loginUser = async (req, res) => {
     where: { id: user.id },
     data: { lastLogin: new Date() },
   });
-
   // Remove password from response
   const { password: _, ...userWithoutPassword } = user;
+
+  // Include all necessary user fields in the response
+  const userData = {
+    ...userWithoutPassword,
+    avatar: user.avatar || null,
+    position: user.position || null,
+    accessToOthers:
+      user.accessToOthers !== undefined ? user.accessToOthers : true,
+  };
 
   sendSuccess(
     res,
     {
-      user: userWithoutPassword,
+      user: userData,
       accessToken,
       refreshToken,
     },
@@ -250,6 +272,9 @@ const getCurrentUser = async (req, res) => {
       lastName: true,
       role: true,
       status: true,
+      avatar: true,
+      position: true,
+      accessToOthers: true,
       createdAt: true,
       lastLogin: true,
     },

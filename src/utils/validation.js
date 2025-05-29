@@ -32,6 +32,9 @@ const registerSchema = Joi.object({
     "string.max": "Last name should not exceed 50 characters",
     "any.required": "Last name is required",
   }),
+  avatar: Joi.string().uri().optional(),
+  position: Joi.string().max(100).optional(),
+  accessToOthers: Joi.boolean().optional().default(true),
   role: Joi.string()
     .valid("ADMIN", "TEAM_LEAD", "EMPLOYEE")
     .optional()
@@ -78,6 +81,8 @@ const updateProfileSchema = Joi.object({
   lastName: Joi.string().min(2).max(50).optional(),
   email: Joi.string().email().optional(),
   username: Joi.string().alphanum().min(3).max(30).optional(),
+  avatar: Joi.string().uri().optional().allow(null, ""),
+  position: Joi.string().max(100).optional().allow(null, ""),
 });
 
 // Admin user update validation
@@ -88,6 +93,9 @@ const adminUpdateUserSchema = Joi.object({
   username: Joi.string().alphanum().min(3).max(30).optional(),
   role: Joi.string().valid("ADMIN", "TEAM_LEAD", "EMPLOYEE").optional(),
   status: Joi.string().valid("ACTIVE", "INACTIVE", "SUSPENDED").optional(),
+  avatar: Joi.string().uri().optional().allow(null, ""),
+  position: Joi.string().max(100).optional().allow(null, ""),
+  accessToOthers: Joi.boolean().optional(),
 });
 
 // Refresh token validation
