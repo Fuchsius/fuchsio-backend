@@ -2,12 +2,10 @@ const express = require("express");
 const router = express.Router();
 
 // Import route modules
-const exampleRoutes = require("./example");
-const authRoutes = require("./auth");
-const userRoutes = require("./users");
+const authRoutes = require("./auth.routes");
+const userRoutes = require("./users.routes");
 
 // Use route modules
-router.use("/examples", exampleRoutes);
 router.use("/auth", authRoutes);
 router.use("/users", userRoutes);
 
@@ -33,7 +31,6 @@ router.get("/", (req, res) => {
         delete: "DELETE /api/v1/users/:id (Admin)",
         stats: "GET /api/v1/users/stats (Admin)",
       },
-      examples: "/api/v1/examples",
       health: "/health",
     },
     roles: ["ADMIN", "TEAM_LEAD", "EMPLOYEE"],

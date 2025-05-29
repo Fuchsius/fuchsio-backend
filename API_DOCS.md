@@ -28,131 +28,30 @@ http://localhost:3001
 - **Description**: Get API information and available endpoints
 - **Response**:
 
-```json
+````json
 {
   "message": "Fuchsio Backend API v1",
   "endpoints": {
-    "examples": "/api/v1/examples",
+    "auth": {
+      "register": "POST /api/v1/auth/register",
+      "login": "POST /api/v1/auth/login",
+      "refresh": "POST /api/v1/auth/refresh",
+      "logout": "POST /api/v1/auth/logout",
+      "me": "GET /api/v1/auth/me",
+      "changePassword": "POST /api/v1/auth/change-password"
+    },
+    "users": {
+      "profile": "PUT /api/v1/users/profile",
+      "list": "GET /api/v1/auth/users (Admin)",
+      "create": "POST /api/v1/users (Admin)",
+      "update": "PUT /api/v1/users/:id (Admin/Team Lead)",
+      "delete": "DELETE /api/v1/users/:id (Admin)",
+      "stats": "GET /api/v1/users/stats (Admin)"
+    },
     "health": "/health"
   },
-  "documentation": "Add your API documentation URL here"
+  "documentation": "See API_DOCS.md for detailed documentation"
 }
-```
-
-### Examples CRUD Operations
-
-#### Get All Examples
-
-- **GET** `/api/v1/examples`
-- **Description**: Retrieve all examples
-- **Response**:
-
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "name": "Example 1",
-      "description": "This is the first example",
-      "createdAt": "2025-05-29T..."
-    }
-  ],
-  "count": 1
-}
-```
-
-#### Get Example by ID
-
-- **GET** `/api/v1/examples/:id`
-- **Description**: Retrieve a specific example by ID
-- **Parameters**:
-  - `id` (number): Example ID
-- **Response**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "Example 1",
-    "description": "This is the first example",
-    "createdAt": "2025-05-29T..."
-  }
-}
-```
-
-#### Create New Example
-
-- **POST** `/api/v1/examples`
-- **Description**: Create a new example
-- **Request Body**:
-
-```json
-{
-  "name": "New Example",
-  "description": "This is a new example"
-}
-```
-
-- **Response**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": 3,
-    "name": "New Example",
-    "description": "This is a new example",
-    "createdAt": "2025-05-29T..."
-  }
-}
-```
-
-#### Update Example
-
-- **PUT** `/api/v1/examples/:id`
-- **Description**: Update an existing example
-- **Parameters**:
-  - `id` (number): Example ID
-- **Request Body**:
-
-```json
-{
-  "name": "Updated Example",
-  "description": "This is an updated example"
-}
-```
-
-- **Response**:
-
-```json
-{
-  "success": true,
-  "data": {
-    "id": 1,
-    "name": "Updated Example",
-    "description": "This is an updated example",
-    "createdAt": "2025-05-29T...",
-    "updatedAt": "2025-05-29T..."
-  }
-}
-```
-
-#### Delete Example
-
-- **DELETE** `/api/v1/examples/:id`
-- **Description**: Delete an example
-- **Parameters**:
-  - `id` (number): Example ID
-- **Response**:
-
-```json
-{
-  "success": true,
-  "message": "Example deleted successfully"
-}
-```
 
 ## Error Responses
 
@@ -164,7 +63,7 @@ All error responses follow this format:
   "error": "Error message",
   "timestamp": "2025-05-29T..."
 }
-```
+````
 
 ### Common HTTP Status Codes
 

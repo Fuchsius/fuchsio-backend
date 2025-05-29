@@ -104,6 +104,17 @@ const idParamSchema = Joi.object({
   }),
 });
 
+// User status update validation
+const userStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid("ACTIVE", "INACTIVE", "SUSPENDED")
+    .required()
+    .messages({
+      "any.required": "Status is required",
+      "any.only": "Status must be ACTIVE, INACTIVE, or SUSPENDED",
+    }),
+});
+
 module.exports = {
   registerSchema,
   loginSchema,
@@ -112,4 +123,5 @@ module.exports = {
   adminUpdateUserSchema,
   refreshTokenSchema,
   idParamSchema,
+  userStatusSchema,
 };
