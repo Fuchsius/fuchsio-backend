@@ -11,6 +11,7 @@ const timetrackingRoutes = require("./timetracking.routes");
 const uploadRoutes = require("./upload.routes");
 const realtimeRoutes = require("./realtime.routes");
 const analyticsRoutes = require("./analytics.routes");
+const monitoringRoutes = require("./monitoring.routes");
 
 // Use route modules
 router.use("/auth", authRoutes);
@@ -22,6 +23,7 @@ router.use("/timetracking", timetrackingRoutes);
 router.use("/upload", uploadRoutes);
 router.use("/realtime", realtimeRoutes);
 router.use("/analytics", analyticsRoutes);
+router.use("/monitoring", monitoringRoutes);
 
 // API info endpoint
 router.get("/", (req, res) => {
@@ -115,6 +117,15 @@ router.get("/", (req, res) => {
           "GET /api/v1/analytics/team/productivity (Admin/Team Lead)",
         timeTrackingAnalytics: "GET /api/v1/analytics/time-tracking",
         customReport: "POST /api/v1/analytics/reports/custom",
+      },
+      monitoring: {
+        health: "GET /api/v1/monitoring/health",
+        metrics: "GET /api/v1/monitoring/metrics (Admin)",
+        dashboard: "GET /api/v1/monitoring/dashboard (Admin)",
+        performance: "GET /api/v1/monitoring/performance (Admin)",
+        errors: "GET /api/v1/monitoring/errors (Admin)",
+        alerts: "GET /api/v1/monitoring/alerts (Admin)",
+        logs: "GET /api/v1/monitoring/logs (Admin)",
       },
       health: "/health",
     },

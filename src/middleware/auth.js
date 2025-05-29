@@ -5,6 +5,8 @@ const {
   canAccessResource,
 } = require("../utils/auth");
 const { sendError } = require("../utils/helpers");
+const logger = require("../utils/logger");
+const { auditTrail } = require("./audit");
 
 // Authentication middleware
 const authenticateToken = async (req, res, next) => {
@@ -16,6 +18,15 @@ const authenticateToken = async (req, res, next) => {
         : null;
 
     if (!token) {
+      // Log failed authentication attempt
+      logger.security("Authentication failed - No token provided", {
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get("User-Agent"),
+        method: req.method,
+        url: req.url,
+        requestId: req.requestId,
+      });
+
       return sendError(res, "Access token is required", 401);
     }
 
@@ -37,16 +48,57 @@ const authenticateToken = async (req, res, next) => {
     });
 
     if (!user) {
+      logger.security("Authentication failed - User not found", {
+        tokenUserId: decoded.id,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get("User-Agent"),
+        method: req.method,
+        url: req.url,
+        requestId: req.requestId,
+      });
+
       return sendError(res, "User not found", 401);
     }
 
     if (user.status !== "ACTIVE") {
+      logger.security("Authentication failed - User account inactive", {
+        userId: user.id,
+        username: user.username,
+        status: user.status,
+        ip: req.ip || req.connection.remoteAddress,
+        userAgent: req.get("User-Agent"),
+        method: req.method,
+        url: req.url,
+        requestId: req.requestId,
+      });
+
       return sendError(res, "User account is not active", 401);
     }
+
+    // Log successful authentication
+    logger.audit("User authenticated successfully", {
+      userId: user.id,
+      username: user.username,
+      role: user.role,
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.get("User-Agent"),
+      method: req.method,
+      url: req.url,
+      requestId: req.requestId,
+    });
 
     req.user = user;
     next();
   } catch (error) {
+    logger.security("Authentication failed - Token error", {
+      error: error.message,
+      errorType: error.name,
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.get("User-Agent"),
+      method: req.method,
+      url: req.url,
+      requestId: req.requestId,
+    });
     if (error.name === "JsonWebTokenError") {
       return sendError(res, "Invalid token", 401);
     }
@@ -61,14 +113,42 @@ const authenticateToken = async (req, res, next) => {
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
+      logger.security("Authorization failed - No authenticated user", {
+        requiredRoles: roles,
+        ip: req.ip || req.connection.remoteAddress,
+        method: req.method,
+        url: req.url,
+        requestId: req.requestId,
+      });
       return sendError(res, "Authentication required", 401);
     }
 
     const hasRequiredRole = roles.some((role) => hasRole(req.user.role, role));
 
     if (!hasRequiredRole) {
+      logger.security("Authorization failed - Insufficient permissions", {
+        userId: req.user.id,
+        username: req.user.username,
+        userRole: req.user.role,
+        requiredRoles: roles,
+        ip: req.ip || req.connection.remoteAddress,
+        method: req.method,
+        url: req.url,
+        requestId: req.requestId,
+      });
       return sendError(res, "Insufficient permissions", 403);
     }
+
+    logger.audit("Authorization successful", {
+      userId: req.user.id,
+      username: req.user.username,
+      userRole: req.user.role,
+      requiredRoles: roles,
+      ip: req.ip || req.connection.remoteAddress,
+      method: req.method,
+      url: req.url,
+      requestId: req.requestId,
+    });
 
     next();
   };
@@ -105,12 +185,38 @@ const checkResourceAccess = (resourceIdParam = "id", allowedRoles = []) => {
 // Admin only middleware
 const adminOnly = (req, res, next) => {
   if (!req.user) {
+    logger.security("Admin access denied - No authenticated user", {
+      ip: req.ip || req.connection.remoteAddress,
+      method: req.method,
+      url: req.url,
+      requestId: req.requestId,
+    });
     return sendError(res, "Authentication required", 401);
   }
 
   if (req.user.role !== "ADMIN") {
+    logger.security("Admin access denied - Insufficient role", {
+      userId: req.user.id,
+      username: req.user.username,
+      userRole: req.user.role,
+      requiredRole: "ADMIN",
+      ip: req.ip || req.connection.remoteAddress,
+      method: req.method,
+      url: req.url,
+      requestId: req.requestId,
+    });
     return sendError(res, "Admin access required", 403);
   }
+
+  logger.audit("Admin access granted", {
+    userId: req.user.id,
+    username: req.user.username,
+    userRole: req.user.role,
+    ip: req.ip || req.connection.remoteAddress,
+    method: req.method,
+    url: req.url,
+    requestId: req.requestId,
+  });
 
   next();
 };
@@ -118,12 +224,38 @@ const adminOnly = (req, res, next) => {
 // Team Lead or Admin middleware
 const teamLeadOrAdmin = (req, res, next) => {
   if (!req.user) {
+    logger.security("Team Lead/Admin access denied - No authenticated user", {
+      ip: req.ip || req.connection.remoteAddress,
+      method: req.method,
+      url: req.url,
+      requestId: req.requestId,
+    });
     return sendError(res, "Authentication required", 401);
   }
 
   if (!hasRole(req.user.role, "TEAM_LEAD")) {
+    logger.security("Team Lead/Admin access denied - Insufficient role", {
+      userId: req.user.id,
+      username: req.user.username,
+      userRole: req.user.role,
+      requiredRole: "TEAM_LEAD or higher",
+      ip: req.ip || req.connection.remoteAddress,
+      method: req.method,
+      url: req.url,
+      requestId: req.requestId,
+    });
     return sendError(res, "Team Lead or Admin access required", 403);
   }
+
+  logger.audit("Team Lead/Admin access granted", {
+    userId: req.user.id,
+    username: req.user.username,
+    userRole: req.user.role,
+    ip: req.ip || req.connection.remoteAddress,
+    method: req.method,
+    url: req.url,
+    requestId: req.requestId,
+  });
 
   next();
 };
