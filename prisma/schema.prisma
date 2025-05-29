@@ -25,6 +25,29 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  COMPLETED
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model User {
   id             String     @id @default(cuid())
   email          String     @unique
@@ -51,6 +74,13 @@ model User {
   // Refresh tokens for JWT
   refreshTokens RefreshToken[]
 
+  // Project relationships
+  createdProjects    Project[]        @relation("ProjectCreator")
+  projectMemberships ProjectMember[]
+  assignedTasks      Task[]           @relation("TaskAssignee")
+  createdTasks       Task[]           @relation("TaskCreator")
+  projectMessages    ProjectMessage[]
+
   @@map("users")
 }
 
@@ -63,4 +93,91 @@ model RefreshToken {
   createdAt DateTime @default(now())
 
   @@map("refresh_tokens")
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?       @db.Text
+  status      ProjectStatus @default(PLANNING)
+  startDate   DateTime?
+  endDate     DateTime?
+  budget      Decimal?      @db.Decimal(10, 2)
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  createdBy String
+  creator   User   @relation("ProjectCreator", fields: [createdBy], references: [id])
+
+  // Project members and tasks
+  members  ProjectMember[]
+  tasks    Task[]
+  messages ProjectMessage[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  joinedAt  DateTime @default(now())
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model Task {
+  id             String       @id @default(cuid())
+  title          String
+  description    String?      @db.Text
+  status         TaskStatus   @default(TODO)
+  priority       TaskPriority @default(MEDIUM)
+  dueDate        DateTime?
+  estimatedHours Int?
+  actualHours    Int?
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  assigneeId String?
+  assignee   User?   @relation("TaskAssignee", fields: [assigneeId], references: [id])
+
+  createdBy String
+  creator   User   @relation("TaskCreator", fields: [createdBy], references: [id])
+
+  @@map("tasks")
+}
+
+model ProjectMessage {
+  id       String  @id @default(cuid())
+  content  String  @db.Text
+  isEdited Boolean @default(false)
+  isFile   Boolean @default(false)
+  fileUrl  String?
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  sentBy String
+  sender User   @relation(fields: [sentBy], references: [id], onDelete: Cascade)
+
+  @@map("project_messages")
 }

@@ -146,14 +146,44 @@ const requestLogger = (req, res, next) => {
 // Validation middleware
 const validateRequest = (schema, source = "body") => {
   return (req, res, next) => {
-    const data = source === "params" ? req.params : req.body;
-    const { error, value } = schema.validate(data, { abortEarly: false });
+    let validationSchema;
 
+    // Handle nested schema structure (e.g., {body: Joi.object(), params: Joi.object()})
+    if (schema && typeof schema === "object" && schema[source]) {
+      validationSchema = schema[source];
+    } else {
+      // Handle direct schema (e.g., Joi.object())
+      validationSchema = schema;
+    }
+
+    // Check if validationSchema is actually a Joi schema with validate method
+    if (!validationSchema || typeof validationSchema.validate !== "function") {
+      console.error("Invalid validation schema:", validationSchema);
+      return sendError(
+        res,
+        {
+          message: "Internal validation error",
+        },
+        500
+      );
+    }
+
+    const data = source === "params" ? req.params : req.body;
+    const { error, value } = validationSchema.validate(data, {
+      abortEarly: false,
+    });
     if (error) {
       const errorDetails = error.details.map((detail) => ({
         field: detail.path.join("."),
         message: detail.message,
       }));
+
+      console.log("Validation error details:", {
+        source,
+        data,
+        errors: errorDetails,
+        schema: validationSchema.describe(),
+      });
 
       return sendError(
         res,
