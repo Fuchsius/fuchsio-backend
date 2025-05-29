@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const compression = require("compression");
 const rateLimit = require("express-rate-limit");
+const path = require("path");
 require("dotenv").config();
 
 const app = express();
@@ -38,6 +39,9 @@ app.use(compression());
 
 // Logging middleware
 app.use(morgan("combined"));
+
+// Static file serving for uploads
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Routes
 app.get("/", (req, res) => {
@@ -87,10 +91,22 @@ app.use((req, res) => {
 
 // Start server
 if (require.main === module) {
-  app.listen(PORT, () => {
+  const http = require("http");
+  const server = http.createServer(app);
+
+  // Initialize Socket.io
+  const { initializeSocketIO } = require("./websocket/socket.config");
+  const io = initializeSocketIO(server);
+
+  // Make io available globally for controllers
+  app.set("io", io);
+
+  server.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📱 Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`🌐 API URL: http://localhost:${PORT}`);
+    console.log(`⚡ WebSocket server initialized`);
+    console.log(`🔔 Real-time notifications enabled`);
   });
 }
 

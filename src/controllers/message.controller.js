@@ -1,6 +1,7 @@
 // Controller for project messaging/chat system
 const { PrismaClient } = require("@prisma/client");
 const { sendSuccess, sendError, sendPaginated } = require("../utils/helpers");
+const { messageNotifications } = require("../utils/realtime");
 
 const prisma = new PrismaClient();
 
@@ -58,6 +59,19 @@ const sendMessage = async (req, res) => {
         },
       },
     });
+
+    // Send real-time notification
+    try {
+      messageNotifications.sent(message, {
+        id: req.user.id,
+        username:
+          req.user.username || `${req.user.firstName} ${req.user.lastName}`,
+        email: req.user.email,
+      });
+    } catch (notificationError) {
+      console.error("Message notification error:", notificationError);
+      // Don't fail the request if notification fails
+    }
 
     sendSuccess(res, message, "Message sent successfully", 201);
   } catch (error) {

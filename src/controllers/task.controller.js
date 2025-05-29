@@ -2,6 +2,7 @@
 const { PrismaClient } = require("@prisma/client");
 const { sendSuccess, sendError, sendPaginated } = require("../utils/helpers");
 const { hasRole } = require("../utils/auth");
+const { taskNotifications } = require("../utils/realtime");
 
 const prisma = new PrismaClient();
 
@@ -115,6 +116,19 @@ const createTask = async (req, res) => {
         },
       },
     });
+
+    // Send real-time notification
+    try {
+      taskNotifications.created(task, {
+        id: req.user.id,
+        username:
+          req.user.username || `${req.user.firstName} ${req.user.lastName}`,
+        email: req.user.email,
+      });
+    } catch (notificationError) {
+      console.error("Task creation notification error:", notificationError);
+      // Don't fail the request if notification fails
+    }
 
     sendSuccess(res, task, "Task created successfully", 201);
   } catch (error) {
@@ -446,6 +460,23 @@ const updateTask = async (req, res) => {
         },
       },
     });
+
+    // Send real-time notification for task update
+    try {
+      taskNotifications.updated(
+        updatedTask,
+        {
+          id: req.user.id,
+          username:
+            req.user.username || `${req.user.firstName} ${req.user.lastName}`,
+          email: req.user.email,
+        },
+        updates
+      );
+    } catch (notificationError) {
+      console.error("Task update notification error:", notificationError);
+      // Don't fail the request if notification fails
+    }
 
     sendSuccess(res, updatedTask, "Task updated successfully");
   } catch (error) {

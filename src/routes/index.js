@@ -7,6 +7,10 @@ const userRoutes = require("./users.routes");
 const projectRoutes = require("./projects.routes");
 const taskRoutes = require("./tasks.routes");
 const messageRoutes = require("./messages.routes");
+const timetrackingRoutes = require("./timetracking.routes");
+const uploadRoutes = require("./upload.routes");
+const realtimeRoutes = require("./realtime.routes");
+const analyticsRoutes = require("./analytics.routes");
 
 // Use route modules
 router.use("/auth", authRoutes);
@@ -14,6 +18,10 @@ router.use("/users", userRoutes);
 router.use("/projects", projectRoutes);
 router.use("/tasks", taskRoutes);
 router.use("/messages", messageRoutes);
+router.use("/timetracking", timetrackingRoutes);
+router.use("/upload", uploadRoutes);
+router.use("/realtime", realtimeRoutes);
+router.use("/analytics", analyticsRoutes);
 
 // API info endpoint
 router.get("/", (req, res) => {
@@ -64,6 +72,49 @@ router.get("/", (req, res) => {
         update: "PUT /api/v1/messages/:id (Sender only)",
         delete: "DELETE /api/v1/messages/:id (Sender/Creator/Admin)",
         stats: "GET /api/v1/messages/projects/:projectId/stats",
+      },
+      timetracking: {
+        createEntry: "POST /api/v1/timetracking/entries",
+        getEntries: "GET /api/v1/timetracking/entries",
+        getEntry: "GET /api/v1/timetracking/entries/:id",
+        updateEntry: "PUT /api/v1/timetracking/entries/:id",
+        deleteEntry: "DELETE /api/v1/timetracking/entries/:id",
+        submitEntry: "POST /api/v1/timetracking/entries/:id/submit",
+        approveEntry:
+          "POST /api/v1/timetracking/entries/:id/approve (Admin/Team Lead)",
+        bulkOperations: "POST /api/v1/timetracking/entries/bulk",
+        startTimer: "POST /api/v1/timetracking/timer/start",
+        updateTimer: "PUT /api/v1/timetracking/timer/:id",
+        getActiveTimer: "GET /api/v1/timetracking/timer/active",
+        getReports: "GET /api/v1/timetracking/reports",
+      },
+      upload: {
+        uploadFile: "POST /api/v1/upload/file",
+        uploadFiles: "POST /api/v1/upload/files",
+        uploadScreenshot: "POST /api/v1/upload/screenshot",
+        getFiles: "GET /api/v1/upload",
+        getFile: "GET /api/v1/upload/:id",
+        downloadFile: "GET /api/v1/upload/:id/download",
+        updateFile: "PUT /api/v1/upload/:id",
+        deleteFile: "DELETE /api/v1/upload/:id",
+        bulkDelete: "DELETE /api/v1/upload/bulk",
+        bulkUpdate: "PUT /api/v1/upload/bulk",
+      },
+      realtime: {
+        status: "GET /api/v1/realtime/status",
+        onlineUsers: "GET /api/v1/realtime/users/online",
+        projectUsers: "GET /api/v1/realtime/projects/:projectId/users",
+        userStatus: "GET /api/v1/realtime/users/:userId/status",
+        broadcast: "POST /api/v1/realtime/notifications/broadcast (Admin)",
+        health: "GET /api/v1/realtime/health",
+      },
+      analytics: {
+        dashboardStats: "GET /api/v1/analytics/dashboard",
+        projectAnalytics: "GET /api/v1/analytics/projects/:projectId",
+        teamProductivity:
+          "GET /api/v1/analytics/team/productivity (Admin/Team Lead)",
+        timeTrackingAnalytics: "GET /api/v1/analytics/time-tracking",
+        customReport: "POST /api/v1/analytics/reports/custom",
       },
       health: "/health",
     },

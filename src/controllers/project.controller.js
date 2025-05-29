@@ -2,78 +2,137 @@
 const { PrismaClient } = require("@prisma/client");
 const { sendSuccess, sendError, sendPaginated } = require("../utils/helpers");
 const { hasRole } = require("../utils/auth");
+const { projectNotifications } = require("../utils/realtime");
 
 const prisma = new PrismaClient();
 
 // Create new project (Admin/Team Lead only)
 const createProject = async (req, res) => {
-  const { name, description, startDate, endDate, budget, memberIds } =
-    req.validatedBody;
+  try {
+    const { name, description, startDate, endDate, budget, memberIds } =
+      req.validatedBody;
 
-  // Create project
-  const project = await prisma.project.create({
-    data: {
-      name,
-      description,
-      startDate: startDate ? new Date(startDate) : null,
-      endDate: endDate ? new Date(endDate) : null,
-      budget: budget ? parseFloat(budget) : null,
-      createdBy: req.user.id,
-    },
-    include: {
-      creator: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          role: true,
+    // Create project
+    const project = await prisma.project.create({
+      data: {
+        name,
+        description,
+        startDate: startDate ? new Date(startDate) : null,
+        endDate: endDate ? new Date(endDate) : null,
+        budget: budget ? parseFloat(budget) : null,
+        createdBy: req.user.id,
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            role: true,
+          },
+        },
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                role: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            members: true,
+            tasks: true,
+          },
         },
       },
-      _count: {
-        select: {
-          members: true,
-          tasks: true,
+    });
+
+    // Add project members if provided
+    if (memberIds && memberIds.length > 0) {
+      // Validate member IDs exist and are employees if user is team lead
+      const memberValidationWhere = {
+        id: { in: memberIds },
+        status: "ACTIVE",
+      };
+
+      // Team leads can only add employees to projects
+      if (req.user.role === "TEAM_LEAD") {
+        memberValidationWhere.role = "EMPLOYEE";
+      }
+
+      const validMembers = await prisma.user.findMany({
+        where: memberValidationWhere,
+        select: { id: true },
+      });
+
+      if (validMembers.length !== memberIds.length) {
+        return sendError(
+          res,
+          "Some member IDs are invalid or inaccessible",
+          400
+        );
+      }
+
+      // Add members to project
+      const memberData = memberIds.map((userId) => ({
+        projectId: project.id,
+        userId,
+      }));
+
+      await prisma.projectMember.createMany({
+        data: memberData,
+        skipDuplicates: true,
+      });
+
+      // Fetch updated project with members for notifications
+      const updatedProject = await prisma.project.findUnique({
+        where: { id: project.id },
+        include: {
+          members: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                  role: true,
+                },
+              },
+            },
+          },
         },
-      },
-    },
-  });
+      });
 
-  // Add project members if provided
-  if (memberIds && memberIds.length > 0) {
-    // Validate member IDs exist and are employees if user is team lead
-    const memberValidationWhere = {
-      id: { in: memberIds },
-      status: "ACTIVE",
-    };
-
-    // Team leads can only add employees to projects
-    if (req.user.role === "TEAM_LEAD") {
-      memberValidationWhere.role = "EMPLOYEE";
+      // Send real-time notification
+      try {
+        projectNotifications.created(updatedProject, {
+          id: req.user.id,
+          username:
+            req.user.username || `${req.user.firstName} ${req.user.lastName}`,
+          email: req.user.email,
+        });
+      } catch (notificationError) {
+        console.error(
+          "Project creation notification error:",
+          notificationError
+        );
+        // Don't fail the request if notification fails
+      }
     }
 
-    const validMembers = await prisma.user.findMany({
-      where: memberValidationWhere,
-      select: { id: true },
-    });
-
-    if (validMembers.length !== memberIds.length) {
-      return sendError(res, "Some member IDs are invalid or inaccessible", 400);
-    }
-
-    // Add members to project
-    const memberData = memberIds.map((userId) => ({
-      projectId: project.id,
-      userId,
-    }));
-
-    await prisma.projectMember.createMany({
-      data: memberData,
-      skipDuplicates: true,
-    });
+    sendSuccess(res, project, "Project created successfully", 201);
+  } catch (error) {
+    console.error("Create project error:", error);
+    sendError(res, "Failed to create project", 500);
   }
-
-  sendSuccess(res, project, "Project created successfully", 201);
 };
 
 // Get all projects (with filtering and pagination)

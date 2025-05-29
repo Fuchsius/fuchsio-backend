@@ -48,6 +48,19 @@ enum TaskPriority {
   URGENT
 }
 
+enum TimeEntryStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+enum TimerStatus {
+  STOPPED
+  RUNNING
+  PAUSED
+}
+
 model User {
   id             String     @id @default(cuid())
   email          String     @unique
@@ -80,6 +93,14 @@ model User {
   assignedTasks      Task[]           @relation("TaskAssignee")
   createdTasks       Task[]           @relation("TaskCreator")
   projectMessages    ProjectMessage[]
+
+  // Time tracking relationships
+  timeEntries         TimeEntry[]    @relation("TimeEntryUser")
+  approvedTimeEntries TimeEntry[]    @relation("TimeEntryApprover")
+  timerSessions       TimerSession[]
+
+  // File uploads
+  fileUploads FileUpload[]
 
   @@map("users")
 }
@@ -116,6 +137,13 @@ model Project {
   members  ProjectMember[]
   tasks    Task[]
   messages ProjectMessage[]
+
+  // Time tracking relationships
+  timeEntries   TimeEntry[]
+  timerSessions TimerSession[]
+
+  // File uploads
+  fileUploads FileUpload[]
 
   @@map("projects")
 }
@@ -158,6 +186,13 @@ model Task {
   createdBy String
   creator   User   @relation("TaskCreator", fields: [createdBy], references: [id])
 
+  // Time tracking relationships
+  timeEntries   TimeEntry[]
+  timerSessions TimerSession[]
+
+  // File uploads
+  fileUploads FileUpload[]
+
   @@map("tasks")
 }
 
@@ -179,5 +214,117 @@ model ProjectMessage {
   sentBy String
   sender User   @relation(fields: [sentBy], references: [id], onDelete: Cascade)
 
+  // File attachment
+  fileUpload FileUpload?
+
   @@map("project_messages")
+}
+
+model TimeEntry {
+  id          String          @id @default(cuid())
+  description String?         @db.Text
+  hours       Decimal         @db.Decimal(5, 2) // Up to 999.99 hours
+  date        DateTime        @db.Date
+  status      TimeEntryStatus @default(DRAFT)
+  billable    Boolean         @default(true)
+  notes       String?         @db.Text
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation("TimeEntryUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  approvedBy String?
+  approver   User?   @relation("TimeEntryApprover", fields: [approvedBy], references: [id])
+
+  approvedAt DateTime?
+
+  // Timer session relationship
+  timerSession TimerSession? @relation("TimerToTimeEntry")
+
+  @@map("time_entries")
+}
+
+model TimerSession {
+  id          String      @id @default(cuid())
+  description String?     @db.Text
+  startTime   DateTime
+  endTime     DateTime?
+  status      TimerStatus @default(STOPPED)
+  totalHours  Decimal?    @db.Decimal(5, 2)
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Converted to time entry when session ends
+  timeEntryId String?    @unique
+  timeEntry   TimeEntry? @relation("TimerToTimeEntry", fields: [timeEntryId], references: [id])
+
+  @@map("timer_sessions")
+}
+
+model FileUpload {
+  id          String  @id @default(cuid())
+  filename    String // Original filename
+  storedName  String // Generated/stored filename  
+  mimeType    String // File MIME type
+  size        Int // File size in bytes
+  path        String // Storage path
+  url         String? // Public URL if applicable
+  description String? @db.Text
+  isPublic    Boolean @default(false)
+
+  // File categories
+  category FileCategory @default(GENERAL)
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  uploadedBy String
+  uploader   User   @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  // Optional associations
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  taskId String?
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  messageId String?         @unique
+  message   ProjectMessage? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@map("file_uploads")
+}
+
+enum FileCategory {
+  GENERAL
+  DOCUMENT
+  IMAGE
+  VIDEO
+  AUDIO
+  SCREENSHOT
+  ARCHIVE
+  CODE
 }
