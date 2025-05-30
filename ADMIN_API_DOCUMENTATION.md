@@ -1,5 +1,64 @@
 # 🔧 Fuchsio Backend API Documentation
 
+---
+
+## 🌐 **Base URL & Network Configuration**
+
+### **Server Information**
+
+- **Local IP Address**: `192.168.1.2`
+- **Default Port**: `3000`
+- **Environment**: `development` (configurable via NODE_ENV)
+
+### **Base URLs for Frontend Integration**
+
+#### **Primary Base URL (Network Access)**
+
+```
+http://192.168.1.2:3000
+```
+
+**Use this URL for:**
+
+- Frontend applications on the same network
+- Mobile apps testing on physical devices
+- Team development and testing
+
+#### **Local Development URL**
+
+```
+http://localhost:3000
+```
+
+**Use this URL for:**
+
+- Local frontend development
+- Backend testing and debugging
+- Development tools and scripts
+
+#### **API Endpoints**
+
+- **REST API Base**: `http://192.168.1.2:3000/api/v1`
+- **WebSocket Connection**: `ws://192.168.1.2:3000`
+- **Health Check**: `http://192.168.1.2:3000/health`
+- **Monitoring Dashboard**: `http://192.168.1.2:3000/status-monitor` (dev only)
+
+### **CORS Configuration**
+
+The server accepts connections from:
+
+- `http://localhost:3000` (default frontend)
+- `http://localhost:5173` (Vite development server)
+- Additional origins via `ALLOWED_ORIGINS` environment variable
+
+### **Server Status**
+
+✅ **Currently Running**: Port 3000 is active and listening
+🔄 **Auto-restart**: Available via `npm run dev` with nodemon
+📊 **Monitoring**: Real-time dashboard available at `/status-monitor`
+
+---
+
 ## 👥 Admin Employee Management APIs
 
 ### Authentication Required
