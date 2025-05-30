@@ -3,6 +3,7 @@
 ## 👥 Admin Employee Management APIs
 
 ### Authentication Required
+
 All endpoints require JWT authentication via `Authorization: Bearer <token>` header.
 
 ---
@@ -10,9 +11,11 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ## 📋 User Management Endpoints
 
 ### 1. Create New User (Admin Only)
+
 **POST** `/api/v1/users`
 
 **Headers:**
+
 ```json
 {
   "Authorization": "Bearer <admin_jwt_token>",
@@ -21,6 +24,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Request Body:**
+
 ```json
 {
   "email": "john.doe@company.com",
@@ -36,6 +40,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Response (201):**
+
 ```json
 {
   "success": true,
@@ -59,9 +64,11 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ---
 
 ### 2. Update User (Admin/Team Lead)
+
 **PUT** `/api/v1/users/:id`
 
 **Headers:**
+
 ```json
 {
   "Authorization": "Bearer <admin_or_teamlead_jwt_token>",
@@ -70,6 +77,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Request Body:**
+
 ```json
 {
   "firstName": "John Updated",
@@ -85,6 +93,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -108,9 +117,11 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ---
 
 ### 3. Delete User (Admin Only)
+
 **DELETE** `/api/v1/users/:id`
 
 **Headers:**
+
 ```json
 {
   "Authorization": "Bearer <admin_jwt_token>"
@@ -118,6 +129,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -129,12 +141,15 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ---
 
 ### 4. Get Users by Role (Admin/Team Lead)
+
 **GET** `/api/v1/users/role/:role`
 
 **Path Parameters:**
+
 - `role`: ADMIN | TEAM_LEAD | EMPLOYEE
 
 **Headers:**
+
 ```json
 {
   "Authorization": "Bearer <admin_or_teamlead_jwt_token>"
@@ -142,6 +157,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -182,9 +198,11 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ---
 
 ### 5. Get User Statistics (Admin Only)
+
 **GET** `/api/v1/users/stats`
 
 **Headers:**
+
 ```json
 {
   "Authorization": "Bearer <admin_jwt_token>"
@@ -192,6 +210,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -245,9 +264,11 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ---
 
 ### 6. Toggle User Status (Admin Only)
+
 **PATCH** `/api/v1/users/:id/status`
 
 **Headers:**
+
 ```json
 {
   "Authorization": "Bearer <admin_jwt_token>",
@@ -256,6 +277,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Request Body:**
+
 ```json
 {
   "status": "SUSPENDED"
@@ -263,6 +285,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -283,9 +306,11 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ---
 
 ### 7. Update Own Profile (All Users)
+
 **PUT** `/api/v1/users/profile`
 
 **Headers:**
+
 ```json
 {
   "Authorization": "Bearer <user_jwt_token>",
@@ -294,6 +319,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Request Body:**
+
 ```json
 {
   "firstName": "John Updated",
@@ -306,6 +332,7 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 ```
 
 **Response (200):**
+
 ```json
 {
   "success": true,
@@ -335,11 +362,12 @@ All endpoints require JWT authentication via `Authorization: Bearer <token>` hea
 **WebSocket Endpoint:** `ws://localhost:3000` or `wss://yourdomain.com`
 
 **Authentication:**
+
 ```javascript
-const socket = io('ws://localhost:3000', {
+const socket = io("ws://localhost:3000", {
   auth: {
-    token: 'Bearer <your_jwt_token>'
-  }
+    token: "Bearer <your_jwt_token>",
+  },
 });
 ```
 
@@ -350,6 +378,7 @@ const socket = io('ws://localhost:3000', {
 ### 1. Connection Events
 
 #### **connected** (Server → Client)
+
 Sent immediately after successful connection.
 
 ```json
@@ -367,6 +396,7 @@ Sent immediately after successful connection.
 ```
 
 #### **connect_error** (Server → Client)
+
 Sent when connection fails.
 
 ```json
@@ -381,14 +411,17 @@ Sent when connection fails.
 ### 2. Project Room Management
 
 #### **join_project** (Client → Server)
+
 Join a project room for real-time collaboration.
 
 **Emit:**
+
 ```javascript
-socket.emit('join_project', 'project_uuid_12345');
+socket.emit("join_project", "project_uuid_12345");
 ```
 
 **Response:**
+
 ```json
 {
   "projectId": "project_uuid_12345",
@@ -397,14 +430,17 @@ socket.emit('join_project', 'project_uuid_12345');
 ```
 
 #### **leave_project** (Client → Server)
+
 Leave a project room.
 
 **Emit:**
+
 ```javascript
-socket.emit('leave_project', 'project_uuid_12345');
+socket.emit("leave_project", "project_uuid_12345");
 ```
 
 **Response:**
+
 ```json
 {
   "projectId": "project_uuid_12345",
@@ -417,9 +453,11 @@ socket.emit('leave_project', 'project_uuid_12345');
 ### 3. Real-time Notifications
 
 #### **notification** (Server → Client)
+
 General notification event for all real-time updates.
 
 **Task Created:**
+
 ```json
 {
   "type": "task_created",
@@ -440,6 +478,7 @@ General notification event for all real-time updates.
 ```
 
 **Task Assigned:**
+
 ```json
 {
   "type": "task_assigned",
@@ -457,6 +496,7 @@ General notification event for all real-time updates.
 ```
 
 **Project Member Added:**
+
 ```json
 {
   "type": "project_member_added",
@@ -474,6 +514,7 @@ General notification event for all real-time updates.
 ```
 
 **Message Sent:**
+
 ```json
 {
   "type": "message_sent",
@@ -492,6 +533,7 @@ General notification event for all real-time updates.
 ```
 
 **Time Entry Submitted:**
+
 ```json
 {
   "type": "time_entry_submitted",
@@ -512,6 +554,7 @@ General notification event for all real-time updates.
 ```
 
 **File Uploaded:**
+
 ```json
 {
   "type": "file_uploaded",
@@ -537,16 +580,19 @@ General notification event for all real-time updates.
 ### 4. Typing Indicators
 
 #### **typing_start** (Client → Server)
+
 Indicate user started typing in project chat.
 
 **Emit:**
+
 ```javascript
-socket.emit('typing_start', {
-  projectId: 'project_uuid_12345'
+socket.emit("typing_start", {
+  projectId: "project_uuid_12345",
 });
 ```
 
 #### **user_typing** (Server → Client)
+
 Notify others that a user is typing.
 
 ```json
@@ -558,16 +604,19 @@ Notify others that a user is typing.
 ```
 
 #### **typing_stop** (Client → Server)
+
 Indicate user stopped typing.
 
 **Emit:**
+
 ```javascript
-socket.emit('typing_stop', {
-  projectId: 'project_uuid_12345'
+socket.emit("typing_stop", {
+  projectId: "project_uuid_12345",
 });
 ```
 
 #### **user_stopped_typing** (Server → Client)
+
 Notify others that a user stopped typing.
 
 ```json
@@ -583,9 +632,11 @@ Notify others that a user stopped typing.
 ### 5. User Presence Tracking
 
 #### **user_presence** (Server → Client)
+
 Notify about user online/offline status.
 
 **User Joined:**
+
 ```json
 {
   "type": "user_presence",
@@ -600,6 +651,7 @@ Notify about user online/offline status.
 ```
 
 **User Left:**
+
 ```json
 {
   "type": "user_presence",
@@ -618,14 +670,17 @@ Notify about user online/offline status.
 ### 6. System Information
 
 #### **get_system_status** (Client → Server)
+
 Request current system status.
 
 **Emit:**
+
 ```javascript
-socket.emit('get_system_status');
+socket.emit("get_system_status");
 ```
 
 #### **system_status** (Server → Client)
+
 System status response.
 
 ```json
@@ -637,14 +692,17 @@ System status response.
 ```
 
 #### **get_project_users** (Client → Server)
+
 Get users currently in a project room.
 
 **Emit:**
+
 ```javascript
-socket.emit('get_project_users', 'project_uuid_12345');
+socket.emit("get_project_users", "project_uuid_12345");
 ```
 
 #### **project_users** (Server → Client)
+
 Project users response.
 
 ```json
@@ -660,14 +718,17 @@ Project users response.
 ### 7. Ping/Pong for Connection Health
 
 #### **ping** (Client → Server)
+
 Test connection health.
 
 **Emit:**
+
 ```javascript
-socket.emit('ping');
+socket.emit("ping");
 ```
 
 #### **pong** (Server → Client)
+
 Connection health response.
 
 ```json
@@ -681,6 +742,7 @@ Connection health response.
 ## 🚨 Error Responses
 
 ### Validation Errors (400)
+
 ```json
 {
   "success": false,
@@ -699,6 +761,7 @@ Connection health response.
 ```
 
 ### Unauthorized (401)
+
 ```json
 {
   "success": false,
@@ -708,6 +771,7 @@ Connection health response.
 ```
 
 ### Forbidden (403)
+
 ```json
 {
   "success": false,
@@ -717,6 +781,7 @@ Connection health response.
 ```
 
 ### Not Found (404)
+
 ```json
 {
   "success": false,
@@ -726,6 +791,7 @@ Connection health response.
 ```
 
 ### Conflict (409)
+
 ```json
 {
   "success": false,
@@ -739,9 +805,10 @@ Connection health response.
 ## 📊 Rate Limiting
 
 All API endpoints are protected by rate limiting:
+
 - **Window**: 15 minutes
 - **Max Requests**: 100 per window per IP
-- **Headers**: 
+- **Headers**:
   - `X-RateLimit-Limit`: Request limit
   - `X-RateLimit-Remaining`: Remaining requests
   - `X-RateLimit-Reset`: Reset time
@@ -751,6 +818,7 @@ All API endpoints are protected by rate limiting:
 ## 🔐 Security Headers
 
 All responses include security headers:
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
